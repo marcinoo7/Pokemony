@@ -2,27 +2,88 @@ package pl.pwr.andz1.pokemony.ListView
 
 import androidx.lifecycle.ViewModelProvider
 import android.os.Bundle
+import android.util.Log
+import android.view.*
 import androidx.fragment.app.Fragment
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
+import androidx.recyclerview.widget.DividerItemDecoration
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import pl.pwr.andz1.pokemony.R
+import pl.pwr.andz1.pokemony.databinding.ListViewFragmentBinding
+
 
 class ListViewFragment : Fragment() {
 
     private lateinit var viewModel: ListViewViewModel
+    private lateinit var binding : ListViewFragmentBinding
+    private lateinit var viewAdapter: RecyclerView.Adapter<*>
+    private lateinit var viewManager: RecyclerView.LayoutManager
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        return inflater.inflate(R.layout.list_view_fragment, container, false)
+        binding = ListViewFragmentBinding.inflate(layoutInflater)
+        viewModel = ViewModelProvider(this).get(ListViewViewModel::class.java)
+        viewAdapter = MyAdapter(viewModel)
+        viewManager = LinearLayoutManager(this.context)
+        binding.list.apply{
+            layoutManager = viewManager
+            adapter = viewAdapter
+            addItemDecoration(
+                DividerItemDecoration(
+                    context,
+                    DividerItemDecoration.VERTICAL
+                )
+            )
+        }
+        setHasOptionsMenu(true)
+        return binding.root
     }
 
-    override fun onActivityCreated(savedInstanceState: Bundle?) {
-        super.onActivityCreated(savedInstanceState)
-        viewModel = ViewModelProvider(this).get(ListViewViewModel::class.java)
-        // TODO: Use the ViewModel
+    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
+        inflater.inflate(R.menu.menu, menu)
+        super.onCreateOptionsMenu(menu, inflater)
+    }
+
+    override fun onPrepareOptionsMenu(menu: Menu) {
+        menu.clear()
+
+        val reset = menu.add(Menu.NONE, 0, 0, "Reset")
+        reset.setOnMenuItemClickListener {
+            viewModel.resetList()
+            viewAdapter.notifyDataSetChanged()
+            true
+        }
+        val favourite = menu.add(Menu.NONE, 0, 0, "Favourite")
+        favourite.setOnMenuItemClickListener {
+            viewModel.takeFavourite()
+            viewAdapter.notifyDataSetChanged()
+            true
+        }
+
+        val generationsMenu = menu.addSubMenu(Menu.NONE, 0, 0, "Generations")
+        val generations = mutableSetOf<Int>()
+        viewModel.get_unchanged_list().forEach {
+            generations.add(it.generation)
+        }
+        Log.i("Generations", generations.size.toString())
+        generations.sorted().forEach{
+            val typeItem: MenuItem = generationsMenu.add(
+                Menu.NONE,
+                0,
+                0,
+                it.toString()
+            )
+            val gen = it
+            typeItem.setOnMenuItemClickListener {
+                viewModel.takeGen(gen)
+                viewAdapter.notifyDataSetChanged()
+                return@setOnMenuItemClickListener true
+            }
+        }
+
+        return super.onPrepareOptionsMenu(menu)
     }
 
 }
