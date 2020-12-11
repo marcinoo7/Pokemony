@@ -43,4 +43,13 @@ class ListViewViewModel : ViewModel() {
         filterList = ArrayList(pokemonList.filter{it.generation == gen})
     }
 
+    fun takeType(type : String){
+        filterList = ArrayList(pokemonList.filter{it.primaryType == type || it.secondaryType == type})
+    }
+
+    fun changeFav(position : Int)
+    {
+        filterList[position].changeFav()
+    }
+
 }

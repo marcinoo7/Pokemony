@@ -25,7 +25,7 @@ class ListViewFragment : Fragment() {
     ): View? {
         binding = ListViewFragmentBinding.inflate(layoutInflater)
         viewModel = ViewModelProvider(this).get(ListViewViewModel::class.java)
-        viewAdapter = MyAdapter(viewModel)
+        viewAdapter = MyAdapter(viewModel, this.context)
         viewManager = LinearLayoutManager(this.context)
         binding.list.apply{
             layoutManager = viewManager
@@ -38,6 +38,9 @@ class ListViewFragment : Fragment() {
             )
         }
         setHasOptionsMenu(true)
+
+        container
+
         return binding.root
     }
 
@@ -62,22 +65,42 @@ class ListViewFragment : Fragment() {
             true
         }
 
-        val generationsMenu = menu.addSubMenu(Menu.NONE, 0, 0, "Generations")
+        val generationsMenu = menu.addSubMenu(Menu.NONE, 0, 0, "Generation")
         val generations = mutableSetOf<Int>()
         viewModel.get_unchanged_list().forEach {
             generations.add(it.generation)
         }
-        Log.i("Generations", generations.size.toString())
         generations.sorted().forEach{
-            val typeItem: MenuItem = generationsMenu.add(
+            val generationItem: MenuItem = generationsMenu.add(
                 Menu.NONE,
                 0,
                 0,
                 it.toString()
             )
             val gen = it
-            typeItem.setOnMenuItemClickListener {
+            generationItem.setOnMenuItemClickListener {
                 viewModel.takeGen(gen)
+                viewAdapter.notifyDataSetChanged()
+                return@setOnMenuItemClickListener true
+            }
+        }
+
+        val typesMenu = menu.addSubMenu(Menu.NONE, 0, 0, "Type")
+        val types = mutableSetOf<String>()
+        viewModel.get_unchanged_list().forEach {
+            types.add(it.primaryType)
+            if(it.secondaryType != "") types.add(it.secondaryType)
+        }
+        types.sorted().forEach{
+            val typeItem: MenuItem = typesMenu.add(
+                    Menu.NONE,
+                    0,
+                    0,
+                    it
+            )
+            val type = it
+            typeItem.setOnMenuItemClickListener {
+                viewModel.takeType(type)
                 viewAdapter.notifyDataSetChanged()
                 return@setOnMenuItemClickListener true
             }

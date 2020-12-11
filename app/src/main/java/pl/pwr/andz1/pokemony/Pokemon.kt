@@ -12,11 +12,8 @@ class Pokemon(
 {
     var favourite : Boolean = false
 
-    fun setToFav(){
-        favourite = true
-    }
-
-    fun setToNotFav(){
-        favourite = false
+    fun changeFav()
+    {
+        favourite = !favourite
     }
 }
